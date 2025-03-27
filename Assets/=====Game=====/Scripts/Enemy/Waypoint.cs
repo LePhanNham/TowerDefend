@@ -19,6 +19,11 @@ public class Waypoint : MonoBehaviour
        _gameStarted = true;
         _curPos = transform.position;
     }
+
+    public int GetLengthPoint()
+    {
+        return points.Length;
+    }
     public Vector3 GetWaypointPosition(int index)
     {
         return CurPos + Points[index];

@@ -16,7 +16,7 @@ public class WaypointEditor : Editor
 
             // Create handle
             Vector3 currentWaypointPoint = Waypoint.CurPos + Waypoint.Points[i];
-            var fmh_19_85_638779429901123555 = Quaternion.identity; Vector3 newWaypointPoint = Handles.FreeMoveHandle(currentWaypointPoint, 0.7f, new Vector3(0.3f, 0.3f, 0.3f), Handles.SphereHandleCap);
+            Vector3 newWaypointPoint = Handles.FreeMoveHandle(currentWaypointPoint, 0.7f, new Vector3(0.3f, 0.3f, 0.3f), Handles.SphereHandleCap);
 
 
             // create text

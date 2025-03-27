@@ -14,11 +14,12 @@ public class EnemySpawner : MonoBehaviour
     [Header("Present")]
     private float _spawnTime;
     private int _enemySpawned;
-
+    private Waypoint _waypoint;
     ObjectPooler _pooler;
     private void Start()
     {
         _pooler = GetComponent<ObjectPooler>();
+        _waypoint = GetComponent<Waypoint>();
     }
 
     private void Update()
@@ -39,5 +40,11 @@ public class EnemySpawner : MonoBehaviour
     {
         GameObject newInstance = _pooler.GetInstanceFromPool();
         newInstance.SetActive(true);
+        newInstance.GetComponent<Enemy>().enabled = true;
+        Enemy enemyScript = newInstance.GetComponent<Enemy>();
+        if (enemyScript != null)
+        {
+            enemyScript.SetWaypoint(_waypoint);
+        }
     }
 }

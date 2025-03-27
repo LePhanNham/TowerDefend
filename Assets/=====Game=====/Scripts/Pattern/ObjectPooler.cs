@@ -8,13 +8,19 @@ public class ObjectPooler : MonoBehaviour
     [SerializeField] private int poolSize = 10;
     private List<GameObject> _pool;
     private GameObject _poolContainer;
+    private Waypoint _waypoint;
 
 
     private void Awake()
     {
         _pool = new List<GameObject>();
         _poolContainer = new GameObject($"Pool - {prefab.name}");
+        _waypoint = GetComponent<Waypoint>();
         CreatePool();
+    }
+    private void Start()
+    {
+        _poolContainer.transform.position = new Vector3(-9.8f, 6, 0);
     }
     public void CreatePool()
     {

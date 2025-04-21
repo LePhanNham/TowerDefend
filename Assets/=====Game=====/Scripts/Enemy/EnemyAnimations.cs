@@ -30,7 +30,7 @@ public class EnemyAnimations : MonoBehaviour
     {
         _enemy.StopMovement();
         PlayHurtAnimation();
-        yield return new WaitForSeconds(GetCurrentAnimationLength() + 0.3f);
+        yield return new WaitForSeconds(GetCurrentAnimationLength() + 0.1f);
         _enemy.ResumeMovement();
     }
 
@@ -39,9 +39,8 @@ public class EnemyAnimations : MonoBehaviour
         _enemy.StopMovement();
         Instantiate(deathParticles, transform.position, Quaternion.identity);
         yield return new WaitForSeconds(0.1f);
-        _enemy.ResumeMovement();
+        _enemy.gameObject.SetActive(false);
         _enemyHealth.ResetHealth();
-        ObjectPooler.ReturnToPool(_enemy.gameObject);
     }
     private void EnemyHit(Enemy enemy)
     {

@@ -11,10 +11,10 @@ public class EnemyHealth : MonoBehaviour
 
     [SerializeField] private GameObject healthBarPrefab;
     [SerializeField] private Transform healthBarPosition;
-    [SerializeField] private float initHealth = 10f;
-    [SerializeField] private float maxHealth = 10f;
+    [SerializeField] private float initHealth = 40f;
+    [SerializeField] private float maxHealth = 40f;
 
-    public float curHealth { get; set; }
+    [SerializeField] public float curHealth { get; set; }
 
     private Image _healthBar;
     private Enemy _enemy;
@@ -30,10 +30,7 @@ public class EnemyHealth : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            DealDamage(2f);
-        }
+
         _healthBar.fillAmount = Mathf.Lerp(_healthBar.fillAmount, curHealth / maxHealth, Time.deltaTime * 10f);
     }
     private void CreateHealthBar()
@@ -46,7 +43,7 @@ public class EnemyHealth : MonoBehaviour
 
     public void ResetHealth()
     {
-
+        curHealth = maxHealth;
     }
     public void DealDamage(float damageReceived)
     {
@@ -64,8 +61,8 @@ public class EnemyHealth : MonoBehaviour
 
     private void Die()
     {
-
         OnEnemyKilled?.Invoke(_enemy);
+
     }
 }
 

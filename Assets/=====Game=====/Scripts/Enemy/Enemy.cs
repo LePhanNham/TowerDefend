@@ -17,6 +17,7 @@ public class Enemy : MonoBehaviour
 
     [SerializeField] private float moveSpeed = 2;
     [SerializeField] private SpriteRenderer _spriteRenderer;
+    [SerializeField] public EnemyHealth _enemyHealth;
 
     public event Action OnEndReached;
 
@@ -24,7 +25,7 @@ public class Enemy : MonoBehaviour
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         waypoint = GetComponent<Waypoint>();
-        //_enemyHealth = GetComponent<EnemyHealth>();
+        _enemyHealth = GetComponent<EnemyHealth>();
     }
 
     private void Start()
@@ -77,8 +78,8 @@ public class Enemy : MonoBehaviour
     private void EndPointReached()
     {
         OnEndReached?.Invoke();
-        //_enemyHealth.ResetHealth();
-        ObjectPooler.ReturnToPool(gameObject);
+        _enemyHealth.ResetHealth();
+        waypoint.GetComponentInParent<EnemySpawner>()._pooler.ReturnToPool(gameObject);
     }
 
     private void Rotate()
@@ -110,9 +111,10 @@ public class Enemy : MonoBehaviour
 
     public void StopMovement()
     {
-
+        moveSpeed = 0;
     }
     public void ResumeMovement()
     {
+        moveSpeed = 2;
     }
 }

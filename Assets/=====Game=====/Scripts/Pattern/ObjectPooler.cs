@@ -7,21 +7,17 @@ public class ObjectPooler : MonoBehaviour
     [SerializeField] private GameObject prefab;
     [SerializeField] private int poolSize = 10;
     private List<GameObject> _pool;
-    private GameObject _poolContainer;
-    private Waypoint _waypoint;
+    public GameObject _poolContainer;
 
 
     private void Awake()
     {
         _pool = new List<GameObject>();
         _poolContainer = new GameObject($"Pool - {prefab.name}");
-        _waypoint = GetComponent<Waypoint>();
+
         CreatePool();
     }
-    private void Start()
-    {
-        _poolContainer.transform.position = new Vector3(-9.8f, 6, 0);
-    }
+
     public void CreatePool()
     {
         for (int i = 0; i < poolSize; i++)
@@ -31,16 +27,20 @@ public class ObjectPooler : MonoBehaviour
     }
     public GameObject CreateInstance()
     {
-        GameObject instance = Instantiate( prefab );
+        GameObject instance = Instantiate(prefab);
+        if (prefab.CompareTag("Enemy"))
+        {
+            _poolContainer.transform.position = new Vector3(-9.8f, 6f, 0f);
+        }
         instance.transform.SetParent(_poolContainer.transform);
         instance.SetActive(false);
         return instance;
     }
     public GameObject GetInstanceFromPool()
     {
-        for (int i = 0;i < poolSize;i++)
+        for (int i = 0; i < poolSize; i++)
         {
-            if (!_pool[i].activeInHierarchy) 
+            if (!_pool[i].activeInHierarchy)
             {
                 return _pool[i];
             }
@@ -49,12 +49,12 @@ public class ObjectPooler : MonoBehaviour
     }
 
 
-    public static void ReturnToPool(GameObject instance)
+    public void ReturnToPool(GameObject instance)
     {
-        instance.SetActive(true);
+        instance.SetActive(false);
     }
 
-    public static IEnumerator ReturnToPoolInHierarchy(GameObject instance,float delay)
+    public static IEnumerator ReturnToPoolInHierarchy(GameObject instance, float delay)
     {
         yield return new WaitForSeconds(delay);
         instance.SetActive(false);

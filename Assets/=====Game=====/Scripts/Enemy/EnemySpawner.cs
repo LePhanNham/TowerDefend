@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemySpawner : MonoBehaviour
+public class EnemySpawner : Singleton<EnemySpawner>
 {
     [Header("Settings")]
     [SerializeField] private int enemyCount = 10;
@@ -15,7 +15,11 @@ public class EnemySpawner : MonoBehaviour
     private float _spawnTime;
     private int _enemySpawned;
     private Waypoint _waypoint;
-    ObjectPooler _pooler;
+    public ObjectPooler _pooler;
+    private void Awake()
+    {
+        base.Awake();
+    }
     private void Start()
     {
         _pooler = GetComponent<ObjectPooler>();
@@ -44,6 +48,7 @@ public class EnemySpawner : MonoBehaviour
         Enemy enemyScript = newInstance.GetComponent<Enemy>();
         if (enemyScript != null)
         {
+            newInstance.transform.position = _pooler._poolContainer.transform.position;
             enemyScript.SetWaypoint(_waypoint);
         }
     }

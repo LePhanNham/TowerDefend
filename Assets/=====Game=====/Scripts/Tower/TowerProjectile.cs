@@ -43,11 +43,6 @@ public class TowerProjectile : MonoBehaviour
         }
     }
 
-    private bool IsTowerEmpty()
-    {
-        if (currentProjectileLoaded == null) return true;
-        return false;
-    }
 
     protected virtual void LoadProjectile()
     {

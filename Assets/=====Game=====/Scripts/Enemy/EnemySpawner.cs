@@ -16,7 +16,7 @@ public class EnemySpawner : Singleton<EnemySpawner>
     private int _enemySpawned;
     private Waypoint _waypoint;
     public ObjectPooler _pooler;
-    private void Awake()
+    public override void Awake()
     {
         base.Awake();
     }

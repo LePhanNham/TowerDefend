@@ -5,37 +5,52 @@ using UnityEngine;
 
 public class LevelManager : Singleton<LevelManager>
 {
-    [SerializeField] private int lives = 10;
-
-    public int totalLives { get; set;  }
+    [SerializeField] public List<LevelData> levels; 
+    [SerializeField] private int level;
+    [SerializeField] private List<EnemyData> enemy;
+    [SerializeField] private List<int> enemyCount;
+    [SerializeField] private float timeDelay;
+    [SerializeField] private List<ObjectPooler> objectPoolers;
     public int currentWave { get; set; }
-
     private void Start()
     {
-        totalLives = lives;
-        currentWave = 1;
+    }
+    public void SetLevel(int level, List<EnemyData> enemy, List<int> enemyCount,float timeDelay)
+    {
+        this.level = level;
+        this.enemy = enemy;
+        this.enemyCount = enemyCount;
+        this.timeDelay = timeDelay;
+    }
+    public bool IsAlive()
+    {
+        if (GameManager.Instance.playerHealth>0) return true;
+        return false;
     }
 
-    private void ReduceLives(Enemy enemy)
+
+    public bool CheckNextLevel()
     {
-        totalLives--;
-        if (totalLives <= 0)
+        if (enemyCount[enemyCount.Count - 1] == 0 && IsAlive()) 
         {
-            totalLives = 0;
-            GameOver();
+            return true;
         }
+        return false;
     }
-
-    private void GameOver()
+    public void NextLevel()
     {
-        throw new NotImplementedException();
-    }
-    private void WaitCompleted()
-    {
-
+        if (CheckNextLevel())
+        {
+            level++;
+            SetLevel(level, levels[level].enemies, levels[level].enemyCount, timeDelay);
+        }
     }
     private void OnEnable()
     {
-        //Enemy.OnEndReached
+        
+    }
+    private void OnDisable()
+    {
+        
     }
 }

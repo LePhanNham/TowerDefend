@@ -79,6 +79,7 @@ public class Enemy : MonoBehaviour
     {
         OnEndReached?.Invoke();
         _enemyHealth.ResetHealth();
+        GameManager.Instance.PlayerTakeDamage();
         waypoint.GetComponentInParent<EnemySpawner>()._pooler.ReturnToPool(gameObject);
     }
 

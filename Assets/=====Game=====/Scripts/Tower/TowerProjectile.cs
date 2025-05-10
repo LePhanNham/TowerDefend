@@ -43,7 +43,6 @@ public class TowerProjectile : MonoBehaviour
         }
     }
 
-
     protected virtual void LoadProjectile()
     {
         newInstance = _pooler.GetInstanceFromPool();

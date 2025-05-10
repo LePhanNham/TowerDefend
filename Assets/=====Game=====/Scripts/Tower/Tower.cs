@@ -8,7 +8,8 @@ public class Tower : MonoBehaviour
     public List<Enemy> _enemy;
 
     public Enemy currentEnemyTarget;
-
+    public TowerBlueprint blueprint;
+    [SerializeField] public SpriteRenderer _spriteRenderer;
 
     private void Update()
     {

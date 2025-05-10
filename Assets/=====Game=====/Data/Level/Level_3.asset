@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38aa90c97450db44fac78ed3664a4657, type: 3}
   m_Name: Level_3
   m_EditorClassIdentifier: 
-  id: 0
-  enemies: []
-  enemyCount: 
-  timeDelay: 0
+  id: 3
+  enemies:
+  - {fileID: 11400000, guid: e7148ce668e112549a797c5cf3976d74, type: 2}
+  - {fileID: 11400000, guid: 58528e4ea1b5de64a8b2e792d6c311e7, type: 2}
+  - {fileID: 11400000, guid: b310c917305207649b834c01b55aa1da, type: 2}
+  enemyCount: 0a0000000f00000005000000
+  timeDelay: 4

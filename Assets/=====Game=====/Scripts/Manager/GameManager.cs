@@ -1,12 +1,15 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : Singleton<GameManager>
 {
     public int playerHealth = 100;
+    public int maxHealth = 100;
     public int money = 100;
-    public Text healthText;
-    public Text moneyText;
+    public TextMeshProUGUI healthText;
+    public TextMeshProUGUI moneyText;
+    public Image healBar;
     public GameObject gameOverUI;
 
     public override void Awake()
@@ -49,13 +52,17 @@ public class GameManager : Singleton<GameManager>
 
     void UpdateUI()
     {
-        healthText.text = "Health: " + playerHealth;
-        moneyText.text = "Money: " + money;
+        healthText.text = playerHealth.ToString();
+        moneyText.text = money.ToString();
+        healBar.fillAmount = Mathf.Lerp(healBar.fillAmount, playerHealth / maxHealth, Time.deltaTime * 10f);
     }
 
     void GameOver()
     {
         gameOverUI.SetActive(true);
         Time.timeScale = 0f; 
+    }
+    public void ShowMessage(string message)
+    {
     }
 }

@@ -6,10 +6,12 @@ public class Node : MonoBehaviour
     public Color hoverColor;
     public Vector3 positionOffset;
 
-    private GameObject tower;
+    private Tower tower;
     private Renderer rend;
     private Color startColor;
     private bool isUpgraded = false;
+
+
 
     void Start()
     {
@@ -17,12 +19,16 @@ public class Node : MonoBehaviour
         startColor = rend.material.color;
     }
 
+    public bool isEmpty()
+    {
+        return tower = null;
+    }
     void OnMouseDown()
     {
         if (BuildManager.Instance.GetTowerToBuild() == null)
         {
-            BuildManager.Instance.SelectNode(this);
             return;
+            //BuildManager.Instance.SelectNode(this);
         }
 
         if (tower != null)
@@ -30,22 +36,22 @@ public class Node : MonoBehaviour
             Debug.Log("Can't build there! - TODO: Display on screen.");
             return;
         }
-
         BuildTower(BuildManager.Instance.GetTowerToBuild());
     }
 
-    void BuildTower(TowerBlueprint blueprint)
+    void BuildTower(Tower tower)
     {
-        if (GameManager.Instance.money < blueprint.cost)
+        if (GameManager.Instance.money < tower.blueprint.cost)
         {
             Debug.Log("Not enough money to build that!");
             return;
         }
-
-        GameManager.Instance.SpendMoney(blueprint.cost);
-
-        GameObject _tower = Instantiate(blueprint.prefab, GetBuildPosition(), Quaternion.identity);
-        tower = _tower;
+        gameObject.GetComponent<SpriteRenderer>().enabled = false;
+        GameManager.Instance.SpendMoney(tower.blueprint.cost);
+        this.tower = Instantiate(tower, GetBuildPosition(), Quaternion.identity);
+        this.tower.transform.SetParent(this.transform);
+        tower.transform.localScale = new Vector3(0.5f,0.5f,1);
+        BuildManager.Instance.ResetTowerToBuild();
     }
 
     void OnMouseEnter()
@@ -54,6 +60,7 @@ public class Node : MonoBehaviour
             return;
 
         rend.material.color = hoverColor;
+        BuildManager.Instance.HovelNodeAvailable();
     }
 
     void OnMouseExit()
@@ -94,20 +101,13 @@ public class Node : MonoBehaviour
         Vector3 position = tower.transform.position;
         Quaternion rotation = tower.transform.rotation;
 
-        Destroy(tower);
-
-
-        //// Hiệu ứng nâng cấp
-        //PlayUpgradeEffect(position);
-
-        // Âm thanh
-        //AudioManager.Instance.PlaySound("Upgrade",1);
 
         Debug.Log("Nâng cấp tháp thành công!");
     }
 
     internal void SellTower()
     {
-        throw new NotImplementedException();
+        Destroy(tower);
+        GameManager.Instance.AddMoney(tower.blueprint.GetSellAmount(false));
     }
 }

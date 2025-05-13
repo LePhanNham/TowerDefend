@@ -4,7 +4,9 @@ using UnityEngine.UI;
 
 public class NodeUI : MonoBehaviour
 {
-    public SpriteRenderer tower;
+
+
+    public Tower tower;
     public GameObject ui; 
     public TextMeshProUGUI upgradeCostText;
     public TextMeshProUGUI sellAmountText;

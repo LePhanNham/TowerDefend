@@ -1,50 +1,63 @@
+using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class BuildManager : Singleton<BuildManager>
 {
 
-    private TowerBlueprint towerToBuild;
+    private Tower towerToBuild;
     private Node selectedNode;
-
-    public NodeUI nodeUI;
-
+    [SerializeField] private List<Node> nodes;
     public override void Awake()
     {
         base.Awake();
     }
 
     public bool CanBuild { get { return towerToBuild != null; } }
-    public bool HasMoney { get { return GameManager.Instance.money >= towerToBuild.cost; } }
+    public bool HasMoney { get { return GameManager.Instance.money >= towerToBuild.blueprint.cost; } }
 
     public void SelectNode(Node node)
     {
         if (selectedNode == node)
         {
-            DeselectNode();
+            //DeselectNode();
             return;
         }
-
         selectedNode = node;
         towerToBuild = null;
-
-        nodeUI.SetTarget(node);
     }
 
     public void DeselectNode()
     {
         selectedNode = null;
-        nodeUI.Hide();
     }
 
-    public void SelectTowerToBuild(TowerBlueprint tower)
+
+    public void SelectTowerToBuild(Tower tower)
     {
         towerToBuild = tower;
-        DeselectNode();
+        //DeselectNode();
     }
 
-    public TowerBlueprint GetTowerToBuild()
+    public Tower GetTowerToBuild()
     {
         return towerToBuild;
+    }
+    public void ResetTowerToBuild()
+    {
+        towerToBuild = null;
+    }
+    public void HovelNodeAvailable()
+    {
+        foreach (Node node in nodes)
+        {
+            if (node.isEmpty())
+            {
+                node.gameObject.GetComponent<SpriteRenderer>().enabled = true;
+                node.gameObject.GetComponent<Collider2D>().enabled = true;
+                node.gameObject.GetComponent<Renderer>().material.color = node.hoverColor;
+
+            }
+        }
     }
 }

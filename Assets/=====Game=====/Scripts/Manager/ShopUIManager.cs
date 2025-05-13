@@ -2,25 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShopUIManager : MonoBehaviour
+public class ShopUIManager : Singleton<ShopUIManager>
 {
     [SerializeField] private TowerCard prefab;
     [SerializeField] private Transform panel;
 
     [SerializeField] public List<TowerSettings> towerSettingsList;
+    public bool checkCreateShop = false;
+    public override void Awake()
+    {
+        base.Awake();
+    }
+
     public void SetUI()
     {
+        checkCreateShop = true;
         for (int i = 0; i < towerSettingsList.Count; i++)
         {
             TowerCard towerCard = Instantiate(prefab);
-            towerCard.transform.SetParent(panel);
+            towerCard.GetComponentInParent<Transform>().SetParent(panel);
             towerCard.SetUpTowerBtn(towerSettingsList[i]);
-            towerCard.transform.localScale = Vector3.one;
+            towerCard.GetComponentInParent<Transform>().localScale = Vector3.one;
         }
     }
 
-    private void Awake()
+
+    public void SetActiveShop()
     {
-        SetUI();
+        panel.gameObject.SetActive(true);
+        if (!checkCreateShop)
+        {
+            SetUI();
+        }
+
+    }
+    public void SetUnActiveShop()
+    {
+        panel.gameObject.SetActive(false);
     }
 }

@@ -8,10 +8,15 @@ using UnityEngine.UI;
 public class TowerCard : MonoBehaviour
 {
     public static Action<TowerSettings> OnPlaceTower;
-    private Image towerImage;
-    private TextMeshProUGUI towerCostText;
+    public Image towerImage;
+    public TextMeshProUGUI towerCostText;
 
     public TowerSettings towerloaded{ get; set; }
+
+    private void Awake()
+    {
+        gameObject.GetComponent<Button>().onClick.AddListener(SetUIShop);
+    }
     public void SetUpTowerBtn(TowerSettings towerSettings)
     {
         towerloaded = towerSettings;
@@ -26,5 +31,11 @@ public class TowerCard : MonoBehaviour
             GameManager.Instance.SpendMoney(towerloaded.cost);
             OnPlaceTower?.Invoke(towerloaded);
         }
+    }
+
+    public void SetUIShop()
+    {
+        ShopUIManager.Instance.SetUnActiveShop();
+        BuildManager.Instance.SelectTowerToBuild(towerloaded.towerPrefabs.GetComponent<Tower>());
     }
 }

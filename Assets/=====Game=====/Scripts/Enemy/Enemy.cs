@@ -19,6 +19,11 @@ public class Enemy : MonoBehaviour
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] public EnemyHealth _enemyHealth;
 
+
+
+    [Header("Collections")]
+    [SerializeField] public int DeathCoinReward = 5;
+
     public event Action OnEndReached;
 
     private void Awake()

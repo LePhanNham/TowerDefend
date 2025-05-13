@@ -106,7 +106,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -1823372101, guid: 1d4ca3ff812ab41459e8e142ebd8b8c6, type: 3}
+  m_Sprite: {fileID: -916057139, guid: de9983cd36d2acf4e9239bb107862159, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -216,7 +216,7 @@ GameObject:
   - component: {fileID: 8907532503486174285}
   - component: {fileID: 5231467076153657114}
   m_Layer: 0
-  m_Name: Turrets
+  m_Name: Turrets 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -288,6 +288,7 @@ MonoBehaviour:
   _enemy: []
   currentEnemyTarget: {fileID: 0}
   blueprint:
+    prefab: {fileID: 5066866230404966394}
     cost: 0
     upgradeCost: 0
   _spriteRenderer: {fileID: 8696503091889872295}
@@ -299,7 +300,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8668762285560997909}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0

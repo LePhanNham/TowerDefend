@@ -11,7 +11,7 @@ public class GameManager : Singleton<GameManager>
     public TextMeshProUGUI moneyText;
     public Image healBar;
     public GameObject gameOverUI;
-
+    public bool isGameStart = false;
     public override void Awake()
     {
         base.Awake();
@@ -52,6 +52,7 @@ public class GameManager : Singleton<GameManager>
 
     void UpdateUI()
     {
+        Debug.Log($"{money}");
         healthText.text = playerHealth.ToString();
         moneyText.text = money.ToString();
         healBar.fillAmount = Mathf.Lerp(healBar.fillAmount, playerHealth / maxHealth, Time.deltaTime * 10f);
@@ -64,5 +65,23 @@ public class GameManager : Singleton<GameManager>
     }
     public void ShowMessage(string message)
     {
+    }
+
+    private void PrepareGame()
+    {
+        Time.timeScale = 0f;
+        gameOverUI.SetActive(false);
+        playerHealth = maxHealth;
+        money = 100;
+        UpdateUI();
+    }
+
+    void StartGame()
+    {
+        if (!isGameStart)
+        {
+            isGameStart = true;
+            Time.timeScale = 1f;
+        }
     }
 }

@@ -45,6 +45,7 @@ public class EnemySpawner : Singleton<EnemySpawner>
         GameObject newInstance = _pooler.GetInstanceFromPool();
         newInstance.SetActive(true);
         newInstance.GetComponent<Enemy>().enabled = true;
+        newInstance.GetComponent<SpriteRenderer>().sortingOrder = 2;
         Enemy enemyScript = newInstance.GetComponent<Enemy>();
         if (enemyScript != null)
         {

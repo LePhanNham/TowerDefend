@@ -12,6 +12,7 @@ public class ShopUIManager : Singleton<ShopUIManager>
     public override void Awake()
     {
         base.Awake();
+        SetUI();
     }
 
     public void SetUI()

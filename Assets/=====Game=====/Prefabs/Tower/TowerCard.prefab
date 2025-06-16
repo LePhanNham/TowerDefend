@@ -297,6 +297,7 @@ GameObject:
   - component: {fileID: 4847034488852531251}
   - component: {fileID: 9133147882307241026}
   - component: {fileID: 7219228370839624594}
+  - component: {fileID: 702981724529324197}
   m_Layer: 5
   m_Name: TowerCard
   m_TagString: Untagged
@@ -422,3 +423,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   towerImage: {fileID: 7277029956186675924}
   towerCostText: {fileID: 858193721353463930}
+  dragTowerFromUI: {fileID: 0}
+--- !u!114 &702981724529324197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7835259207841265724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e23eb6859309a9c4aa06d2e643fd1ff1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  towerPrefab: {fileID: 0}

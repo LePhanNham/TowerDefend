@@ -6,91 +6,97 @@ using UnityEngine.UIElements;
 
 public class Enemy : MonoBehaviour
 {
-    private Vector3 currentPointPosition ;
-    private Vector3 _lastPointPosition;
+    [Header("Enemy Stats")]
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float moveSpeed = 10f;
+    [SerializeField] private int damage = 1;
+    [SerializeField] private int deathReward = 10;
 
-    private int _currenPointIndex = 0;
+    private float currentHealth;
+    private Vector3 endPoint;
+    private bool isDead = false;
+    private float originalMoveSpeed;
 
     [Header("Reference")]
     [SerializeField] private Waypoint waypoint;
     //[SerializeField] private EnemyHealth _enemyHealth;
 
-    [SerializeField] private float moveSpeed = 2;
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] public EnemyHealth _enemyHealth;
-
-
 
     [Header("Collections")]
     [SerializeField] public int DeathCoinReward = 5;
 
-    public event Action OnEndReached;
+    public event Action<Enemy> OnDeath;
 
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         waypoint = GetComponent<Waypoint>();
         _enemyHealth = GetComponent<EnemyHealth>();
+        originalMoveSpeed = moveSpeed;
     }
 
     private void Start()
     {
         if (waypoint != null && waypoint.Points.Length > 0)
         {
-            currentPointPosition = waypoint.GetWaypointPosition(_currenPointIndex);
-
+            endPoint = waypoint.GetWaypointPosition(waypoint.GetLengthPoint() - 1);
+            currentHealth = maxHealth;
         }
     }
 
     private void Update()
     {
-        if (waypoint == null || waypoint.Points.Length == 0)
-            return;
+        if (isDead) return;
 
-        Move();
-        Rotate();
-        if (CurrentPointPositionReached())
+        MoveToEndPoint();
+    }
+
+    private void MoveToEndPoint()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, endPoint, moveSpeed * Time.deltaTime);
+
+        if (Vector3.Distance(transform.position, endPoint) < 0.1f)
         {
-            UpdateCurrentPointIndex();
+            ReachEndPoint();
         }
     }
 
-    private bool CurrentPointPositionReached()
+    public void TakeDamage(float damage)
     {
-        float distance = (transform.position - currentPointPosition).magnitude;
-        if (distance < 0.1f)
-        {
-            _lastPointPosition = transform.position;
-            return true;
-        }
-        return false;
-    }
+        if (isDead) return;
 
-    private void UpdateCurrentPointIndex()
-    {
-        int lastWaypointIndex = waypoint.GetLengthPoint() - 1;
-        if (_currenPointIndex < lastWaypointIndex)
+        currentHealth -= damage;
+
+        if (currentHealth <= 0)
         {
-            _currenPointIndex++;
-            currentPointPosition = waypoint.GetWaypointPosition(_currenPointIndex);
-        }
-        else
-        {
-            EndPointReached();
+            Die();
         }
     }
 
-    private void EndPointReached()
+    private void Die()
     {
-        OnEndReached?.Invoke();
-        _enemyHealth.ResetHealth();
-        GameManager.Instance.PlayerTakeDamage();
-        waypoint.GetComponentInParent<EnemySpawner>()._pooler.ReturnToPool(gameObject);
+        isDead = true;
+        OnDeath?.Invoke(this);
+        GameManager.Instance.AddMoney(deathReward);
+        Destroy(gameObject);
+    }
+
+    private void ReachEndPoint()
+    {
+        GameManager.Instance.TakeDamage(damage);
+        Destroy(gameObject);
+    }
+
+    public float GetHealthPercentage()
+    {
+        return currentHealth / maxHealth;
     }
 
     private void Rotate()
     {
-        if (currentPointPosition.x > _lastPointPosition.x)
+        if (endPoint.x > transform.position.x)
         {
             _spriteRenderer.flipX = true;
         }
@@ -100,18 +106,12 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void Move()
-    {
-        transform.position = Vector3.MoveTowards(transform.position, currentPointPosition, moveSpeed * Time.deltaTime);
-    }
-
     public void SetWaypoint(Waypoint newWaypoint)
     {
         waypoint = newWaypoint;
         if (waypoint != null && waypoint.Points.Length > 0)
         {
-            _currenPointIndex = 0;
-            currentPointPosition = waypoint.GetWaypointPosition(_currenPointIndex);
+            endPoint = waypoint.GetWaypointPosition(waypoint.GetLengthPoint() - 1);
         }
     }
 
@@ -119,8 +119,17 @@ public class Enemy : MonoBehaviour
     {
         moveSpeed = 0;
     }
+
     public void ResumeMovement()
     {
-        moveSpeed = 2;
+        moveSpeed = originalMoveSpeed;
+    }
+
+    public void Initialize(Vector3 endPoint, float healthMultiplier = 1f, float speedMultiplier = 1f)
+    {
+        this.endPoint = endPoint;
+        maxHealth *= healthMultiplier;
+        currentHealth = maxHealth;
+        moveSpeed = originalMoveSpeed * speedMultiplier;
     }
 }

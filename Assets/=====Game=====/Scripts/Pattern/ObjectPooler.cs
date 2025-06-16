@@ -30,7 +30,7 @@ public class ObjectPooler : MonoBehaviour
         GameObject instance = Instantiate(prefab);
         if (prefab.CompareTag("Enemy"))
         {
-            _poolContainer.transform.position = new Vector3(-9.8f, 6f, 0f);
+            _poolContainer.transform.position = new Vector3(-11.79335f, 2.554768f, 0f);
         }
         instance.transform.SetParent(_poolContainer.transform);
         instance.SetActive(false);

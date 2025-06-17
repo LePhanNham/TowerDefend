@@ -7,6 +7,7 @@ public class EnemySpawner : Singleton<EnemySpawner>
     [Header("Settings")]
     [SerializeField] private int enemyCount = 10;
     [SerializeField] private GameObject enemy;
+    [SerializeField] private EnemyData enemyData;
 
     [Header("Delays")]
     [SerializeField] private float timeDelay;
@@ -89,5 +90,17 @@ public class EnemySpawner : Singleton<EnemySpawner>
 
         newInstance.transform.position = _pooler._poolContainer.transform.position;
         enemyScript.SetWaypoint(_waypoint);
+
+        // Gán EnemyData cho enemy
+        if (enemyData != null)
+        {
+            enemyScript.Initialize(_pooler._poolContainer.transform.position, 1f, 1f, enemyData);
+            Debug.Log($"Spawned enemy with gold value: {enemyData.gold}");
+        }
+        else
+        {
+            Debug.LogWarning("EnemyData is not assigned in EnemySpawner!");
+            enemyScript.Initialize(_pooler._poolContainer.transform.position);
+        }
     }
 }

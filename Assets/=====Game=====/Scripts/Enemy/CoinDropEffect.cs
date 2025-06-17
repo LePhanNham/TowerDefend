@@ -4,91 +4,89 @@ using TMPro;
 
 public class CoinDropEffect : MonoBehaviour
 {
-    [Header("Settings")]
-    [SerializeField] private GameObject coinPrefab;
-    [SerializeField] private float dropForce = 5f;
-    [SerializeField] private float moveToUI_Duration = 0.5f;
-    [SerializeField] private float waitBeforeMove = 0.5f;
-    [SerializeField] private int coinValue = 1;
+    public static CoinDropEffect Instance { get; private set; }
 
     [Header("References")]
-    [SerializeField] private Transform moneyTextTransform; // Vị trí của text hiển thị tiền
+    [SerializeField] private GameObject coinTextPrefab; // Prefab chứa cả text và ảnh coin
 
-    private void Start()
+    [Header("Settings")]
+    [SerializeField] private float showDuration = 1f; // Thời gian hiển thị
+    [SerializeField] private float floatDistance = 2f; // Tăng khoảng cách bay lên
+    [SerializeField] private float fadeStartTime = 0.5f; // Thời điểm bắt đầu fade out
+    [SerializeField] private float startYOffset = 0.5f; // Offset ban đầu so với vị trí enemy
+
+    private void Awake()
     {
-        if (moneyTextTransform == null)
+        if (Instance == null)
         {
-            // Tìm text hiển thị tiền trong scene
-            GameObject moneyText = GameObject.FindGameObjectWithTag("MoneyText");
-            if (moneyText != null)
-            {
-                moneyTextTransform = moneyText.transform;
-            }
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
 
-    public void DropCoins(Vector3 position, int amount)
+    public void AddCoins(int amount, Vector3 position)
     {
-        StartCoroutine(SpawnCoins(position, amount));
-    }
-
-    private IEnumerator SpawnCoins(Vector3 position, int amount)
-    {
-        for (int i = 0; i < amount; i++)
+        if (GameManager.Instance != null)
         {
-            // Tạo đồng xu
-            GameObject coin = Instantiate(coinPrefab, position, Quaternion.identity);
-            
-            // Thêm lực ngẫu nhiên để đồng xu rơi theo hướng khác nhau
-            Rigidbody2D rb = coin.GetComponent<Rigidbody2D>();
-            if (rb != null)
-            {
-                Vector2 randomDirection = new Vector2(
-                    Random.Range(-1f, 1f),
-                    Random.Range(0.5f, 1f)
-                ).normalized;
-                rb.AddForce(randomDirection * dropForce, ForceMode2D.Impulse);
-            }
-
-            // Đợi một chút trước khi di chuyển lên UI
-            yield return new WaitForSeconds(waitBeforeMove);
-
-            // Di chuyển đồng xu lên vị trí text tiền
-            if (moneyTextTransform != null)
-            {
-                StartCoroutine(MoveCoinToUI(coin));
-            }
-            else
-            {
-                // Nếu không tìm thấy vị trí text tiền, chỉ cộng tiền
-                GameManager.Instance.AddMoney(coinValue);
-                Destroy(coin);
-            }
+            GameManager.Instance.AddMoney(amount);
+            ShowCoinText(amount, position);
         }
     }
 
-    private IEnumerator MoveCoinToUI(GameObject coin)
+    private void ShowCoinText(int amount, Vector3 position)
     {
-        Vector3 startPosition = coin.transform.position;
-        Vector3 targetPosition = moneyTextTransform.position;
-        float elapsedTime = 0f;
+        if (coinTextPrefab == null) return;
 
-        while (elapsedTime < moveToUI_Duration)
+        // Tạo vị trí bắt đầu cao hơn một chút so với enemy
+        Vector3 startPos = position + new Vector3(0, startYOffset, 0);
+        GameObject obj = Instantiate(coinTextPrefab, startPos, Quaternion.identity);
+        obj.layer = LayerMask.NameToLayer("UI");
+
+        // Set text từ amount
+        TextMeshProUGUI tmp = obj.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp != null)
         {
-            elapsedTime += Time.deltaTime;
-            float t = elapsedTime / moveToUI_Duration;
+            tmp.text = "+" + amount.ToString();
+        }
 
-            // Di chuyển đồng xu
-            coin.transform.position = Vector3.Lerp(startPosition, targetPosition, t);
+        StartCoroutine(AnimateCoinText(obj));
+    }
 
-            // Thu nhỏ đồng xu
-            coin.transform.localScale = Vector3.Lerp(Vector3.one, Vector3.zero, t);
+    private System.Collections.IEnumerator AnimateCoinText(GameObject obj)
+    {
+        float elapsed = 0f;
+        Vector3 startPosition = obj.transform.position;
+        Vector3 targetPosition = startPosition + Vector3.up * floatDistance;
+
+        // Lấy tất cả các component cần fade out
+        CanvasGroup canvasGroup = obj.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = obj.AddComponent<CanvasGroup>();
+        }
+
+        while (elapsed < showDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / showDuration;
+
+            // Di chuyển lên trên với easing
+            float smoothT = Mathf.SmoothStep(0, 1, t); // Thêm easing để chuyển động mượt hơn
+            obj.transform.position = Vector3.Lerp(startPosition, targetPosition, smoothT);
+
+            // Fade out
+            if (elapsed > fadeStartTime)
+            {
+                float fadeT = (elapsed - fadeStartTime) / (showDuration - fadeStartTime);
+                canvasGroup.alpha = Mathf.Lerp(1f, 0f, fadeT);
+            }
 
             yield return null;
         }
 
-        // Cộng tiền và xóa đồng xu
-        GameManager.Instance.AddMoney(coinValue);
-        Destroy(coin);
+        Destroy(obj);
     }
 } 

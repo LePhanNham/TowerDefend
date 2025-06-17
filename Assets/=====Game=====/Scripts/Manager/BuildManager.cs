@@ -1,12 +1,14 @@
 using System.Collections.Generic;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class BuildManager : Singleton<BuildManager>
 {
     [Header("Build Settings")]
     [SerializeField] private Tower towerToBuild;
-    [SerializeField] private Node selectedNode;
+    private Vector3Int selectedTilePos;
+    private GameObject selectedTowerInstance;
+
     [SerializeField] private GameObject buildEffect;
     [SerializeField] private GameObject sellEffect;
 
@@ -15,11 +17,26 @@ public class BuildManager : Singleton<BuildManager>
     [SerializeField] private GameObject upgradeUI;
     [SerializeField] private GameObject sellUI;
 
-    [SerializeField] private List<Node> nodes;
-
     public override void Awake()
     {
         base.Awake();
+        ValidateReferences();
+    }
+
+    private void ValidateReferences()
+    {
+        if (nodeUI == null)
+        {
+            Debug.LogWarning("nodeUI chưa được gán trong BuildManager!");
+        }
+        if (upgradeUI == null)
+        {
+            Debug.LogWarning("upgradeUI chưa được gán trong BuildManager!");
+        }
+        if (sellUI == null)
+        {
+            Debug.LogWarning("sellUI chưa được gán trong BuildManager!");
+        }
     }
 
     public bool CanBuild()
@@ -27,42 +44,51 @@ public class BuildManager : Singleton<BuildManager>
         return towerToBuild != null && GameManager.Instance.CurrentMoney >= towerToBuild.blueprint.cost;
     }
 
-    public void SelectNode(Node node)
+    public void SelectTile(Vector3Int tilePos)
     {
-        if (selectedNode == node)
+        if (selectedTilePos == tilePos)
         {
-            DeselectNode();
+            DeselectTile();
             return;
         }
 
-        selectedNode = node;
+        selectedTilePos = tilePos;
         towerToBuild = null;
 
-        nodeUI.SetActive(true);
-        nodeUI.transform.position = node.transform.position;
+        selectedTowerInstance = TileMapManager.Instance.GetTowerAt(tilePos);
 
-        if (node.isEmpty())
+        if (nodeUI != null)
         {
-            upgradeUI.SetActive(false);
-            sellUI.SetActive(false);
+            nodeUI.SetActive(true);
+            nodeUI.transform.position = TileMapManager.Instance.PlaceableTilemap.GetCellCenterWorld(tilePos);
+        }
+
+        if (selectedTowerInstance != null)
+        {
+            if (upgradeUI != null) upgradeUI.SetActive(true);
+            if (sellUI != null) sellUI.SetActive(true);
         }
         else
         {
-            upgradeUI.SetActive(true);
-            sellUI.SetActive(true);
+            if (upgradeUI != null) upgradeUI.SetActive(false);
+            if (sellUI != null) sellUI.SetActive(false);
         }
     }
 
-    public void DeselectNode()
+    public void DeselectTile()
     {
-        selectedNode = null;
-        nodeUI.SetActive(false);
+        selectedTilePos = Vector3Int.zero;
+        selectedTowerInstance = null;
+        if (nodeUI != null)
+        {
+            nodeUI.SetActive(false);
+        }
     }
 
     public void SelectTowerToBuild(Tower tower)
     {
         towerToBuild = tower;
-        DeselectNode();
+        DeselectTile();
     }
 
     public Tower GetTowerToBuild()
@@ -75,40 +101,20 @@ public class BuildManager : Singleton<BuildManager>
         towerToBuild = null;
     }
 
-    public void BuildTurretOn(Node node)
-    {
-        if (towerToBuild == null) return;
-
-        node.BuildTower(towerToBuild);
-    }
-
-    public void HovelNodeAvailable()
-    {
-        foreach (Node node in nodes)
-        {
-            if (node.isEmpty())
-            {
-                node.gameObject.GetComponent<SpriteRenderer>().enabled = true;
-                node.gameObject.GetComponent<Collider2D>().enabled = true;
-                node.gameObject.GetComponent<Renderer>().material.color = node.HoverColor;
-            }
-        }
-    }
-
     public void UpgradeTower()
     {
-        if (selectedNode != null)
+        if (selectedTowerInstance != null)
         {
-            selectedNode.UpgradeTower();
+            TileMapManager.Instance.UpgradeTower(selectedTilePos);
         }
     }
 
     public void SellTower()
     {
-        if (selectedNode != null)
+        if (selectedTowerInstance != null)
         {
-            selectedNode.SellTower();
-            DeselectNode();
+            TileMapManager.Instance.SellTower(selectedTilePos);
+            DeselectTile();
         }
     }
 }

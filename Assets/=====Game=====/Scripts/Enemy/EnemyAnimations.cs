@@ -37,9 +37,33 @@ public class EnemyAnimations : MonoBehaviour
     private IEnumerator PlayDead()
     {
         _enemy.StopMovement();
-        Instantiate(deathParticles, transform.position, Quaternion.identity);
-        yield return new WaitForSeconds(0.1f);
-        _enemy.gameObject.SetActive(false);
+
+        // Tạo instance của hiệu ứng hạt
+        GameObject particlesInstance = Instantiate(deathParticles, transform.position, Quaternion.identity);
+        ParticleSystem ps = particlesInstance.GetComponent<ParticleSystem>();
+
+        float particleDuration = 0f;
+        if (ps != null)
+        {
+            // Lấy tổng thời gian phát của hệ thống hạt (bao gồm cả Start Lifetime nếu không phải Looping)
+            particleDuration = ps.main.duration + ps.main.startLifetime.constantMax; 
+            if (ps.main.loop) // Nếu particle system đang looping, hãy cảnh báo
+            {
+                Debug.LogWarning("Death particles prefab is set to loop! Consider unchecking 'Looping' in the Particle System component.");
+                particleDuration = 1.0f; // Sử dụng thời gian mặc định để tránh chờ vô hạn
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Death particles prefab does not have a ParticleSystem component!");
+            particleDuration = 1.0f; // Thời gian mặc định nếu không tìm thấy ParticleSystem
+        }
+
+        yield return new WaitForSeconds(particleDuration); // Chờ hiệu ứng hạt phát xong
+
+        Destroy(particlesInstance); // Hủy GameObject hiệu ứng hạt sau khi phát xong
+
+        _enemy.gameObject.SetActive(false); // Vô hiệu hóa enemy (trả về pool)
         _enemyHealth.ResetHealth();
     }
     private void EnemyHit(Enemy enemy)

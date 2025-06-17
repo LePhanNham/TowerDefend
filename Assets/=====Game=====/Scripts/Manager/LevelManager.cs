@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine.UI;
 
 public class LevelManager : Singleton<LevelManager>
 {
@@ -29,6 +31,17 @@ public class LevelManager : Singleton<LevelManager>
     public int TotalEnemiesInWave { get; private set; }
     #endregion
 
+    #region UI References
+    [Header("UI References")]
+    [SerializeField] private GameObject levelCompleteUI;
+    [SerializeField] private TextMeshProUGUI levelCompleteText;
+    [SerializeField] private TextMeshProUGUI rewardText;
+    [SerializeField] private Button nextLevelButton;
+    [SerializeField] private Button retryButton;
+    [SerializeField] private Button mainMenuButton;
+    [SerializeField] private GameObject levelTransitionEffect;
+    #endregion
+
     #region Events
     public static event Action<int> OnWaveStarted;
     public static event Action<int> OnWaveCompleted;
@@ -47,13 +60,49 @@ public class LevelManager : Singleton<LevelManager>
     {
         base.Awake();
         LoadLevelProgress();
+        InitializeUI();
+    }
+
+    private void InitializeUI()
+    {
+        if (levelCompleteUI != null)
+        {
+            levelCompleteUI.SetActive(false);
+        }
+
+        if (nextLevelButton != null)
+        {
+            nextLevelButton.onClick.AddListener(NextLevel);
+        }
+
+        if (retryButton != null)
+        {
+            retryButton.onClick.AddListener(RestartLevel);
+        }
+
+        if (mainMenuButton != null)
+        {
+            mainMenuButton.onClick.AddListener(LoadMainMenu);
+        }
     }
 
     private void Start()
     {
-        if (spawnPoint == null || endPoint == null)
+        Waypoint waypoint = FindObjectOfType<Waypoint>();
+        if (waypoint != null)
         {
-            Debug.LogError("Spawn point or end point not set in LevelManager!");
+            spawnPoint = new GameObject("SpawnPoint").transform;
+            endPoint = new GameObject("EndPoint").transform;
+            
+            // Set spawn point to first waypoint
+            spawnPoint.position = waypoint.GetWaypointPosition(0);
+            
+            // Set end point to last waypoint
+            endPoint.position = waypoint.GetWaypointPosition(waypoint.GetLengthPoint() - 1);
+        }
+        else
+        {
+            Debug.LogError("No Waypoint found in scene!");
             return;
         }
     }
@@ -74,9 +123,17 @@ public class LevelManager : Singleton<LevelManager>
         EnemiesRemaining = 0;
         TotalEnemiesInWave = 0;
 
-        // TODO: Load level data based on level number
-        // currentLevelData = Resources.Load<LevelData>($"Levels/Level_{level}");
+        // Load level data
+        currentLevelData = Resources.Load<LevelData>($"Levels/Level_{level}");
+        if (currentLevelData == null)
+        {
+            Debug.LogError($"Failed to load level data for level {level}");
+            return;
+        }
 
+        // Initialize game state
+        GameManager.Instance.InitializeLevel(currentLevelData.startingMoney, currentLevelData.startingHealth);
+        
         SaveLevelProgress();
         StartNextWave();
     }
@@ -90,13 +147,35 @@ public class LevelManager : Singleton<LevelManager>
     {
         if (currentLevel < maxLevel)
         {
-            StartLevel(currentLevel + 1);
+            StartCoroutine(TransitionToNextLevel());
         }
         else
         {
             Debug.Log("You've completed all levels!");
-            // TODO: Implement game completion logic
+            ShowGameCompleteUI();
         }
+    }
+
+    private IEnumerator TransitionToNextLevel()
+    {
+        if (levelTransitionEffect != null)
+        {
+            levelTransitionEffect.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        StartLevel(currentLevel + 1);
+
+        if (levelTransitionEffect != null)
+        {
+            levelTransitionEffect.SetActive(false);
+        }
+    }
+
+    private void LoadMainMenu()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
     #endregion
 
@@ -183,12 +262,63 @@ public class LevelManager : Singleton<LevelManager>
         IsLevelComplete = true;
         OnLevelComplete?.Invoke();
         SaveLevelProgress();
+        ShowLevelCompleteUI();
     }
 
     public void FailLevel()
     {
         IsLevelFailed = true;
         OnLevelFailed?.Invoke();
+        ShowLevelFailedUI();
+    }
+
+    private void ShowLevelCompleteUI()
+    {
+        if (levelCompleteUI != null)
+        {
+            levelCompleteUI.SetActive(true);
+            levelCompleteText.text = $"Level {currentLevel} Complete!";
+            rewardText.text = $"Rewards:\nMoney: +{currentLevelData.completionReward}";
+
+            // Add rewards
+            GameManager.Instance.AddMoney(currentLevelData.completionReward);
+
+            // Show/hide next level button based on whether there are more levels
+            if (nextLevelButton != null)
+            {
+                nextLevelButton.gameObject.SetActive(currentLevel < maxLevel);
+            }
+        }
+    }
+
+    private void ShowLevelFailedUI()
+    {
+        if (levelCompleteUI != null)
+        {
+            levelCompleteUI.SetActive(true);
+            levelCompleteText.text = "Level Failed!";
+            rewardText.text = "Try again!";
+            
+            if (nextLevelButton != null)
+            {
+                nextLevelButton.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    private void ShowGameCompleteUI()
+    {
+        if (levelCompleteUI != null)
+        {
+            levelCompleteUI.SetActive(true);
+            levelCompleteText.text = "Congratulations!";
+            rewardText.text = "You've completed all levels!";
+            
+            if (nextLevelButton != null)
+            {
+                nextLevelButton.gameObject.SetActive(false);
+            }
+        }
     }
 
     private void SaveLevelProgress()

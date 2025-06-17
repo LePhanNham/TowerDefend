@@ -66,6 +66,21 @@ public class GameManager : Singleton<GameManager>
         IsGameOver = false;
     }
 
+    #region Level Management
+    public void InitializeLevel(int startingMoney, int startingHealth)
+    {
+        currentMoney = startingMoney;
+        currentHealth = startingHealth;
+        maxHealth = startingHealth;
+        IsGameStarted = true;
+        IsGamePaused = false;
+        IsGameOver = false;
+        
+        SaveGameData();
+        UpdateUI();
+    }
+    #endregion
+
     #region Money Management
     public bool SpendMoney(int amount)
     {
@@ -174,6 +189,12 @@ public class GameManager : Singleton<GameManager>
     {
         PlayerPrefs.SetInt(HEALTH_SAVE_KEY, currentHealth);
         PlayerPrefs.Save();
+    }
+
+    private void SaveGameData()
+    {
+        SaveMoney();
+        SaveHealth();
     }
 
     private void LoadGameData()

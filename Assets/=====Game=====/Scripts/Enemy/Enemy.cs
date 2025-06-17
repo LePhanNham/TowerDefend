@@ -16,6 +16,7 @@ public class Enemy : MonoBehaviour
     private Vector3 endPoint;
     private bool isDead = false;
     private float originalMoveSpeed;
+    private int currentWaypointIndex = 0;
 
     [Header("Reference")]
     [SerializeField] private Waypoint waypoint;
@@ -32,34 +33,50 @@ public class Enemy : MonoBehaviour
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        waypoint = GetComponent<Waypoint>();
         _enemyHealth = GetComponent<EnemyHealth>();
         originalMoveSpeed = moveSpeed;
     }
 
     private void Start()
     {
-        if (waypoint != null && waypoint.Points.Length > 0)
+        if (waypoint != null && waypoint.Points != null && waypoint.Points.Length > 0)
         {
-            endPoint = waypoint.GetWaypointPosition(waypoint.GetLengthPoint() - 1);
+            currentWaypointIndex = 0;
+            endPoint = waypoint.GetWaypointPosition(currentWaypointIndex);
             currentHealth = maxHealth;
+        }
+        else
+        {
+            Debug.LogError("Waypoint hoặc Waypoint.Points là null/rỗng trong Enemy.Start! Enemy sẽ không di chuyển.");
+            enabled = false;
         }
     }
 
     private void Update()
     {
-        if (isDead) return;
+        if (isDead || waypoint == null || !enabled) return;
 
         MoveToEndPoint();
+        Rotate();
     }
 
     private void MoveToEndPoint()
     {
+        if (waypoint == null || waypoint.Points == null || waypoint.Points.Length == 0) return;
+
         transform.position = Vector3.MoveTowards(transform.position, endPoint, moveSpeed * Time.deltaTime);
 
         if (Vector3.Distance(transform.position, endPoint) < 0.1f)
         {
-            ReachEndPoint();
+            if (currentWaypointIndex < waypoint.GetLengthPoint() - 1)
+            {
+                currentWaypointIndex++;
+                endPoint = waypoint.GetWaypointPosition(currentWaypointIndex);
+            }
+            else
+            {
+                ReachEndPoint();
+            }
         }
     }
 
@@ -80,13 +97,12 @@ public class Enemy : MonoBehaviour
         isDead = true;
         OnDeath?.Invoke(this);
         GameManager.Instance.AddMoney(deathReward);
-        Destroy(gameObject);
     }
 
     private void ReachEndPoint()
     {
         GameManager.Instance.TakeDamage(damage);
-        Destroy(gameObject);
+        OnDeath?.Invoke(this);
     }
 
     public float GetHealthPercentage()
@@ -96,6 +112,8 @@ public class Enemy : MonoBehaviour
 
     private void Rotate()
     {
+        if (_spriteRenderer == null) return;
+
         if (endPoint.x > transform.position.x)
         {
             _spriteRenderer.flipX = true;
@@ -109,9 +127,16 @@ public class Enemy : MonoBehaviour
     public void SetWaypoint(Waypoint newWaypoint)
     {
         waypoint = newWaypoint;
-        if (waypoint != null && waypoint.Points.Length > 0)
+        if (waypoint != null && waypoint.Points != null && waypoint.Points.Length > 0)
         {
-            endPoint = waypoint.GetWaypointPosition(waypoint.GetLengthPoint() - 1);
+            currentWaypointIndex = 0;
+            endPoint = waypoint.GetWaypointPosition(currentWaypointIndex);
+            enabled = true;
+        }
+        else
+        {
+            Debug.LogWarning("SetWaypoint được gọi với Waypoint null hoặc rỗng. Enemy sẽ không di chuyển.");
+            enabled = false;
         }
     }
 
@@ -131,5 +156,8 @@ public class Enemy : MonoBehaviour
         maxHealth *= healthMultiplier;
         currentHealth = maxHealth;
         moveSpeed = originalMoveSpeed * speedMultiplier;
+        isDead = false;
+        currentWaypointIndex = 0;
+        enabled = true;
     }
 }

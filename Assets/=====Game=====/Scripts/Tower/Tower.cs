@@ -10,6 +10,7 @@ public class Tower : MonoBehaviour
     public Enemy currentEnemyTarget;
     public TowerBlueprint blueprint;
     [SerializeField] public SpriteRenderer _spriteRenderer;
+    public bool isUpgraded;
 
     private void Update()
     {

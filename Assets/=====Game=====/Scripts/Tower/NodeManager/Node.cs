@@ -1,219 +1,101 @@
-﻿using System;
+using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
+// using UnityEngine.EventSystems; // Không cần EventSystems nữa
 
-public class Node : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class Node : MonoBehaviour // Tên Node giờ hơi gây nhầm lẫn, nhưng sẽ giữ lại theo yêu cầu trước đó.
 {
-    [SerializeField] private Color hoverColor;
-    [SerializeField] private Color notEnoughMoneyColor;
-    [SerializeField] private Vector3 positionOffset;
+    // [SerializeField] private Color hoverColor; // Xóa: không còn là ô đất
+    // [SerializeField] private Color notEnoughMoneyColor; // Xóa: không còn là ô đất
+    [SerializeField] private Vector3 positionOffset; // Có thể giữ nếu cần offset vị trí tower so với tâm ô
+    // [SerializeField] private LayerMask towerLayer; // Xóa: không cần cho Node trên Tower
 
     [Header("Optional")]
-    [SerializeField] private GameObject turret;
+    [SerializeField] private GameObject turret; // Giữ: phần hình ảnh của tower
 
-    private Tower tower;
-    private Renderer rend;
-    private Color startColor;
+    private Tower tower; // Tham chiếu đến script Tower trên cùng GameObject này
+    // private Renderer rend; // Xóa: không cần render ô đất
+    // private Color startColor; // Xóa: không cần màu ô đất
     private bool isUpgraded = false;
-    private Vector3 originalPosition;
+    // private Vector3 originalPosition; // Xóa: không cần vị trí ban đầu của ô đất
+    // private string colorPropertyName = "_Color"; // Xóa: không cần màu ô đất
+    // private bool isHovered = false; // Xóa: không cần hover ô đất
 
-    public Color HoverColor => hoverColor;
-    public Color NotEnoughMoneyColor => notEnoughMoneyColor;
+    // Xóa các public property liên quan đến màu ô đất
+    // public Color HoverColor => hoverColor;
+    // public Color NotEnoughMoneyColor => notEnoughMoneyColor;
+
+    public Vector3Int CurrentTilePos { get; private set; } // Vị trí ô Tilemap mà tower này đang đứng
 
     private void Start()
     {
-        rend = GetComponent<Renderer>();
-        startColor = rend.material.color;
-        originalPosition = transform.position;
-    }
+        // Xóa logic liên quan đến Renderer và Collider của ô đất
+        // rend = GetComponent<Renderer>();
+        // if (rend != null && rend.material != null)
+        // {
+        //     ...
+        // }
+        // originalPosition = transform.position;
+        // if (GetComponent<Collider2D>() == null)
+        // {
+        //     ...
+        // }
 
-    public bool isEmpty()
-    {
-        return tower == null;
-    }
-
-    private void OnMouseDown()
-    {
-        if (!BuildManager.Instance.CanBuild())
-            return;
-
-        if (turret != null)
+        // Lấy component Tower trên GameObject này (prefab tower)
+        tower = GetComponent<Tower>();
+        if (tower == null)
         {
-            Debug.Log("Can't build there! - TODO: Display on screen.");
-            return;
+            Debug.LogError("Tower component not found on Node (Placed Tower)! Make sure Tower.cs is on the tower prefab.");
         }
-
-        if (tower != null)
-        {
-            Debug.Log("Can't build there!");
-            return;
-        }
-
-        BuildManager.Instance.BuildTurretOn(this);
     }
 
-    public void BuildTower(Tower tower)
+    // Xóa phương thức isEmpty vì trạng thái trống/có tower do TileMapManager quản lý
+    // public bool isEmpty()
+    // {
+    //     return tower == null;
+    // }
+
+    // Xóa các phương thức OnTrigger vì chúng liên quan đến ô đất
+    // private void OnTriggerEnter2D(Collider2D other) { ... }
+    // private void OnTriggerExit2D(Collider2D other) { ... }
+    // private void UpdateNodeColor(bool isHovered) { ... }
+
+    // Phương thức này không còn cần thiết ở đây, nó sẽ được gọi bởi TileMapManager
+    // public bool BuildTowerFromUI(GameObject towerPrefab) { ... }
+
+    // Phương thức khởi tạo cho Tower đã được đặt
+    public void Initialize(Vector3Int tilePos)
     {
-        if (GameManager.Instance.CurrentMoney < tower.blueprint.cost)
-        {
-            Debug.Log("Not enough money to build that!");
-            GameManager.Instance.ShowMessage("Không đủ tiền!");
-            return;
-        }
-
-        gameObject.GetComponent<SpriteRenderer>().enabled = false;
-
-        GameManager.Instance.SpendMoney(tower.blueprint.cost);
-
-        this.tower = Instantiate(tower, GetBuildPosition(), Quaternion.identity);
-        this.tower.transform.SetParent(this.transform);
-        this.tower.transform.localScale = new Vector3(0.5f, 0.5f, 1);
-
-        BuildManager.Instance.ResetTowerToBuild();
+        CurrentTilePos = tilePos;
+        // Có thể thêm các logic khởi tạo khác cho Tower tại đây, ví dụ: hiệu ứng đặt tower
     }
 
-    public bool BuildTowerFromUI(GameObject towerPrefab)
-    {
-        if (!isEmpty()) return false;
-
-        Tower towerScript = towerPrefab.GetComponent<Tower>();
-        if (towerScript == null)
-        {
-            Debug.LogError("Prefab không có script Tower!");
-            return false;
-        }
-
-        if (GameManager.Instance.CurrentMoney < towerScript.blueprint.cost)
-        {
-            Debug.Log("Không đủ tiền để xây!");
-            GameManager.Instance.ShowMessage("Không đủ tiền!");
-            return false;
-        }
-
-        GameManager.Instance.SpendMoney(towerScript.blueprint.cost);
-
-        this.tower = Instantiate(towerPrefab, GetBuildPosition(), Quaternion.identity).GetComponent<Tower>();
-        this.tower.transform.SetParent(this.transform);
-        this.tower.transform.localScale = new Vector3(0.5f, 0.5f, 1);
-
-        return true;
-    }
-
-    private void OnMouseEnter()
-    {
-        if (!BuildManager.Instance.CanBuild())
-            return;
-
-        if (BuildManager.Instance.GetTowerToBuild() != null)
-        {
-            rend.material.color = hoverColor;
-        }
-        else
-        {
-            rend.material.color = notEnoughMoneyColor;
-        }
-
-        if (BuildManager.Instance.GetTowerToBuild() == null)
-            return;
-
-        BuildManager.Instance.HovelNodeAvailable();
-    }
-
-    private void OnMouseExit()
-    {
-        rend.material.color = startColor;
-    }
-
-    public Vector3 GetBuildPosition()
-    {
-        return transform.position + positionOffset;
-    }
+    // Xóa GetBuildPosition vì TileMapManager sẽ tính toán vị trí instatiate
+    // public Vector3 GetBuildPosition()
+    // {
+    //     return transform.position + positionOffset;
+    // }
 
     internal void UpgradeTower()
     {
-        if (tower == null)
-        {
-            Debug.LogWarning("Không có tháp để nâng cấp!");
-            return;
-        }
+        if (tower == null) return;
 
-        if (isUpgraded)
-        {
-            Debug.Log("Tháp đã được nâng cấp tối đa!");
-            return;
-        }
+        // Logic kiểm tra tiền và trạng thái nâng cấp sẽ do TileMapManager xử lý
+        TileMapManager.Instance.UpgradeTower(CurrentTilePos);
 
-        TowerBlueprint blueprint = tower.GetComponent<Tower>().blueprint;
-
-        if (GameManager.Instance.CurrentMoney < blueprint.upgradeCost)
-        {
-            Debug.Log("Không đủ tiền để nâng cấp!");
-            GameManager.Instance.ShowMessage("Không đủ tiền!");
-            return;
-        }
-
-        GameManager.Instance.SpendMoney(blueprint.upgradeCost);
-
-        Vector3 position = tower.transform.position;
-        Quaternion rotation = tower.transform.rotation;
-
-        // TODO: Thay bằng tháp nâng cấp
-        // Destroy(tower.gameObject);
-        // tower = Instantiate(upgradedTowerPrefab, position, rotation).GetComponent<Tower>();
-
-        isUpgraded = true;
-        Debug.Log("Nâng cấp tháp thành công!");
+        // Sau khi nâng cấp, có thể instance này sẽ bị hủy và một instance mới được tạo ra
+        // Nếu không, hãy cập nhật trạng thái isUpgraded tại đây.
+        // isUpgraded = true; // Tùy thuộc vào cách UpgradeTower trong TileMapManager hoạt động
+        Debug.Log($"Yêu cầu nâng cấp tower tại ô {CurrentTilePos}");
     }
 
     internal void SellTower()
     {
         if (tower == null) return;
 
-        GameManager.Instance.AddMoney(tower.blueprint.GetSellAmount(isUpgraded));
-        Destroy(tower.gameObject);
-        tower = null;
+        // Gọi TileMapManager để bán tower
+        TileMapManager.Instance.SellTower(CurrentTilePos);
 
-        gameObject.GetComponent<SpriteRenderer>().enabled = true;
-    }
-
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        // Lưu vị trí ban đầu của node
-        originalPosition = transform.position;
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        // Di chuyển node theo con trỏ chuột
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePosition.z = 0;
-        transform.position = mousePosition;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        // Kiểm tra xem node có được thả vào vị trí hợp lệ không
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.zero);
-        if (hit.collider != null && hit.collider.CompareTag("Node"))
-        {
-            // Nếu thả vào một node khác, thực hiện logic cần thiết
-            Node targetNode = hit.collider.GetComponent<Node>();
-            if (targetNode != null && targetNode.isEmpty())
-            {
-                // Đặt tháp vào node mới
-                if (tower != null)
-                {
-                    tower.transform.SetParent(targetNode.transform);
-                    tower.transform.position = targetNode.GetBuildPosition();
-                    targetNode.tower = tower;
-                    tower = null;
-                }
-            }
-        }
-        else
-        {
-            // Nếu không thả vào vị trí hợp lệ, trả node về vị trí ban đầu
-            transform.position = originalPosition;
-        }
+        // Không cần làm gì thêm ở đây vì TileMapManager sẽ hủy GameObject này
+        Debug.Log($"Yêu cầu bán tower tại ô {CurrentTilePos}");
     }
 }

@@ -43,7 +43,7 @@ public class ObjectPooler : MonoBehaviour
 
         if (prefab.CompareTag("Enemy"))
         {
-            _poolContainer.transform.position = new Vector3(-11.79335f, 2.554768f, 0f);
+            _poolContainer.transform.position = new Vector3(-8.470572f, 3.28324f, 0f);
         }
         instance.transform.SetParent(_poolContainer.transform);
         instance.SetActive(false);
@@ -93,7 +93,19 @@ public class ObjectPooler : MonoBehaviour
     public void ReturnToPool(GameObject instance)
     {
         if (instance == null) return;
+        
+        // Reset position and rotation
+        instance.transform.position = Vector3.zero;
+        instance.transform.rotation = Quaternion.identity;
+        
+        // Disable the instance
         instance.SetActive(false);
+        
+        // Add back to pool if not already in it
+        if (!_pool.Contains(instance))
+        {
+            _pool.Add(instance);
+        }
     }
 
     public static IEnumerator ReturnToPoolInHierarchy(GameObject instance, float delay)

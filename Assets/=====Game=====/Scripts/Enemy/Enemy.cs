@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using TMPro;
 
 public class Enemy : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private float moveSpeed = 10f;
     [SerializeField] private int damage = 1;
-    [SerializeField] private int deathReward = 10;
+    [SerializeField] private EnemyData enemyData;
 
     private float currentHealth;
     private Vector3 endPoint;
@@ -24,9 +25,13 @@ public class Enemy : MonoBehaviour
 
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] public EnemyHealth _enemyHealth;
+    private Collider2D _collider;
 
     [Header("Collections")]
     [SerializeField] public int DeathCoinReward = 5;
+
+    [Header("References")]
+    [SerializeField] private CoinDropEffect coinDropEffect;
 
     public event Action<Enemy> OnDeath;
 
@@ -39,6 +44,9 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _enemyHealth = GetComponent<EnemyHealth>();
+        _collider = GetComponent<Collider2D>();
         if (waypoint != null && waypoint.Points != null && waypoint.Points.Length > 0)
         {
             currentWaypointIndex = 0;
@@ -92,17 +100,149 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private void Die()
+    public void Die()
     {
+        if (isDead) return;
         isDead = true;
+        
+        Debug.Log($"Enemy died at position {transform.position}");
+        Debug.Log($"CoinDropEffect.Instance: {(CoinDropEffect.Instance != null ? "Exists" : "Null")}");
+        Debug.Log($"enemyData: {(enemyData != null ? "Exists" : "Null")}");
+        if (enemyData != null)
+        {
+            Debug.Log($"enemyData.gold: {enemyData.gold}");
+        }
+        
+        // Tắt collider và movement
+        if (_collider != null) _collider.enabled = false;
+        enabled = false;
+
+        // Thêm tiền trực tiếp
+        if (enemyData != null)
+        {
+            int goldAmount = Mathf.RoundToInt(enemyData.gold);
+            CoinDropEffect.Instance.AddCoins(goldAmount, transform.position);
+        }
+
+        // Hiệu ứng chớp chớp rồi biến mất
+        StartCoroutine(FlashAndDisappear());
+        
+        // Thông báo enemy chết
         OnDeath?.Invoke(this);
-        GameManager.Instance.AddMoney(deathReward);
+    }
+
+    private IEnumerator FlashAndDisappear()
+    {
+        if (_spriteRenderer == null) yield break;
+
+        // Số lần chớp
+        int flashCount = 3;
+        float flashDuration = 0.1f;
+        float waitBetweenFlashes = 0.1f;
+
+        // Lưu màu gốc
+        Color originalColor = _spriteRenderer.color;
+
+        for (int i = 0; i < flashCount; i++)
+        {
+            // Chớp trắng
+            _spriteRenderer.color = Color.white;
+            yield return new WaitForSeconds(flashDuration);
+
+            // Trở về màu gốc
+            _spriteRenderer.color = originalColor;
+            yield return new WaitForSeconds(waitBetweenFlashes);
+        }
+
+        // Biến mất
+        gameObject.SetActive(false);
+        
+        // Reset sau khi biến mất
+        Reset();
     }
 
     private void ReachEndPoint()
     {
+        // Trừ máu người chơi
         GameManager.Instance.TakeDamage(damage);
+
+        // Hiệu ứng khi enemy đến điểm cuối
+        if (TryGetComponent<EnemyAnimations>(out var animations))
+        {
+            StartCoroutine(PlayReachEndPointEffect());
+        }
+
+        // Thông báo số máu bị mất
+        ShowDamageText(damage);
+
+        // Phát âm thanh
+        AudioManager.Instance.PlaySound("enemy_reach_end", 1f);
+
+        // Gọi sự kiện enemy chết
         OnDeath?.Invoke(this);
+    }
+
+    private IEnumerator PlayReachEndPointEffect()
+    {
+        // Dừng di chuyển
+        StopMovement();
+
+        // Hiệu ứng biến mất
+        float fadeTime = 0.5f;
+        float elapsedTime = 0f;
+        Color originalColor = _spriteRenderer.color;
+
+        while (elapsedTime < fadeTime)
+        {
+            elapsedTime += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, elapsedTime / fadeTime);
+            _spriteRenderer.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
+            yield return null;
+        }
+
+        // Vô hiệu hóa enemy
+        gameObject.SetActive(false);
+    }
+
+    private void ShowDamageText(int damage)
+    {
+        // Tạo text damage
+        GameObject damageText = new GameObject("DamageText");
+        damageText.transform.position = transform.position;
+        TextMeshPro textMesh = damageText.AddComponent<TextMeshPro>();
+        textMesh.text = $"-{damage}";
+        textMesh.color = Color.red;
+        textMesh.fontSize = 5;
+        textMesh.alignment = TextAlignmentOptions.Center;
+
+        // Animation text bay lên và biến mất
+        StartCoroutine(AnimateDamageText(textMesh));
+    }
+
+    private IEnumerator AnimateDamageText(TextMeshPro textMesh)
+    {
+        float duration = 1f;
+        float elapsedTime = 0f;
+        Vector3 startPos = textMesh.transform.position;
+        Vector3 endPos = startPos + Vector3.up * 2f;
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+
+            // Di chuyển text lên trên
+            textMesh.transform.position = Vector3.Lerp(startPos, endPos, t);
+
+            // Fade out text
+            Color color = textMesh.color;
+            color.a = Mathf.Lerp(1f, 0f, t);
+            textMesh.color = color;
+
+            yield return null;
+        }
+
+        Destroy(textMesh.gameObject);
     }
 
     public float GetHealthPercentage()
@@ -150,8 +290,9 @@ public class Enemy : MonoBehaviour
         moveSpeed = originalMoveSpeed;
     }
 
-    public void Initialize(Vector3 endPoint, float healthMultiplier = 1f, float speedMultiplier = 1f)
+    public void Initialize(Vector3 endPoint, float healthMultiplier = 1f, float speedMultiplier = 1f, EnemyData data = null)
     {
+        Reset(); // Reset trước khi khởi tạo lại
         this.endPoint = endPoint;
         maxHealth *= healthMultiplier;
         currentHealth = maxHealth;
@@ -159,5 +300,52 @@ public class Enemy : MonoBehaviour
         isDead = false;
         currentWaypointIndex = 0;
         enabled = true;
+
+        // Gán EnemyData nếu được cung cấp
+        if (data != null)
+        {
+            enemyData = data;
+            Debug.Log($"Enemy initialized with data, gold value: {enemyData.gold}");
+        }
+    }
+
+    private void Reset()
+    {
+        // Reset các biến trạng thái
+        isDead = false;
+        currentWaypointIndex = 0;
+        currentHealth = maxHealth;
+        moveSpeed = originalMoveSpeed;
+
+        // Reset sprite renderer
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = Color.white;
+            _spriteRenderer.flipX = false;
+        }
+
+        // Reset health bar
+        if (_enemyHealth != null)
+        {
+            _enemyHealth.ResetHealth();
+        }
+
+        // Reset collider
+        if (_collider != null)
+        {
+            _collider.enabled = true;
+        }
+
+        // Reset vị trí và rotation
+        transform.rotation = Quaternion.identity;
+        
+        // Bật lại component
+        enabled = true;
+    }
+
+    private void OnDisable()
+    {
+        // Không reset khi enemy bị vô hiệu hóa (trả về pool)
+        // Reset sẽ được gọi sau khi hiệu ứng chớp chớp kết thúc
     }
 }

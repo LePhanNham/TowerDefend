@@ -212,10 +212,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0699f22a6604cf4ca94132e0cdff1e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  waypoint: {fileID: 0}
+  maxHealth: 100
   moveSpeed: 2
+  damage: 1
+  enemyData: {fileID: 11400000, guid: b310c917305207649b834c01b55aa1da, type: 2}
+  waypoint: {fileID: 0}
   _spriteRenderer: {fileID: 6264991237524448634}
   _enemyHealth: {fileID: 0}
+  DeathCoinReward: 5
+  coinDropEffect: {fileID: 0}
 --- !u!114 &5153021028325526220
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228,10 +233,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc22a84c21e3a2f4fbcf86c9c55bd20a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deathParticles: {fileID: 2250381213781814355, guid: 9d41572618c582c489e64f3bc7f1ab64, type: 3}
-  _animator: {fileID: 0}
-  _enemy: {fileID: 0}
-  _enemyHealth: {fileID: 0}
 --- !u!1 &7004082486391494738
 GameObject:
   m_ObjectHideFlags: 0

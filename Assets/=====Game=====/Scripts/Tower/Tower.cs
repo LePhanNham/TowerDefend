@@ -31,7 +31,9 @@ public class Tower : MonoBehaviour
 
     private void GetCurrentEnemyTarget()
     {
-        if (_enemy.Count<=0)
+        _enemy.RemoveAll(e => e == null || !e.gameObject.activeInHierarchy);
+        
+        if (_enemy.Count <= 0)
         {
             currentEnemyTarget = null;
             return;
@@ -46,9 +48,11 @@ public class Tower : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            Debug.Log("Enemy Entered");
             Enemy enemy = collision.gameObject.GetComponent<Enemy>();
-            _enemy.Add(enemy);
+            if (enemy != null && !_enemy.Contains(enemy))
+            {
+                _enemy.Add(enemy);
+            }
         }
     }
 
@@ -60,7 +64,6 @@ public class Tower : MonoBehaviour
             if (_enemy.Contains(enemy))
             {
                 _enemy.Remove(enemy);
-                Debug.Log("Enemy Exited");
             }
         }
     }

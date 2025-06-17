@@ -781,8 +781,8 @@ MonoBehaviour:
   - {x: -0.5095434, y: -3.398374, z: 0}
   - {x: -0.5124085, y: -0.4127882, z: 0}
   - {x: -4.4913826, y: -0.42143512, z: 0}
-  - {x: -4.4784603, y: 3.5922785, z: 0}
-  - {x: 3.4823809, y: 3.5639129, z: 0}
+  - {x: -4.4486055, y: 2.5473654, z: 0}
+  - {x: 3.4823804, y: 2.489146, z: 0}
   - {x: 3.5000439, y: -0.45786077, z: 0}
   - {x: 7.4865055, y: -0.5120642, z: 0}
   - {x: 7.536033, y: 2.5857267, z: 0}
@@ -818,6 +818,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prefab: {fileID: 1000716680718753239, guid: e7f06126b5054bc4ca14af8b40106588, type: 3}
   poolSize: 10
+  maxPoolSize: 100
   _poolContainer: {fileID: 0}
 --- !u!1 &411367323
 GameObject:
@@ -1741,6 +1742,7 @@ GameObject:
   m_Component:
   - component: {fileID: 716925968}
   - component: {fileID: 716925967}
+  - component: {fileID: 716925969}
   m_Layer: 0
   m_Name: BuildManager
   m_TagString: Untagged
@@ -1760,10 +1762,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3408475dbee5c3b418f2b72c9850ec9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nodes:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  towerToBuild: {fileID: 0}
+  buildEffect: {fileID: 1474222603335182329, guid: 6d044605f9ecac646b05cd4079e48cd7, type: 3}
+  sellEffect: {fileID: 6019867155939208536, guid: 960a98cb017759845a220343298cdafd, type: 3}
+  nodeUI: {fileID: 1788987198}
+  upgradeUI: {fileID: 1788987198}
+  sellUI: {fileID: 1788987198}
 --- !u!4 &716925968
 Transform:
   m_ObjectHideFlags: 0
@@ -1773,12 +1777,25 @@ Transform:
   m_GameObject: {fileID: 716925966}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 156.4508, y: 103.75062, z: -1.6674595}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &716925969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716925966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6ae371a329c7f148930e45ae19e11a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <PlaceableTilemap>k__BackingField: {fileID: 1983802823}
 --- !u!1 &735487383
 GameObject:
   m_ObjectHideFlags: 0
@@ -2298,7 +2315,7 @@ GameObject:
   - component: {fileID: 1061526623}
   - component: {fileID: 1061526625}
   - component: {fileID: 1061526624}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PathTileMap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3302,15 +3319,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd02551cf98d2d64993b66fa6530e5ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levels:
-  - {fileID: 11400000, guid: 165ac783554ae534bbf155fbc372efda, type: 2}
-  - {fileID: 11400000, guid: 6952aa4e8a55eed43b503bf153fcf3d0, type: 2}
-  - {fileID: 11400000, guid: 3d18a8b0e42e9964aac4d20c515655ce, type: 2}
-  level: 1
-  enemy: []
-  enemyCount: 
-  timeDelay: 0
-  objectPoolers: []
+  currentLevel: 1
+  maxLevel: 10
+  timeBetweenWaves: 5
+  timeBetweenEnemies: 1
+  spawnPoint: {fileID: 0}
+  endPoint: {fileID: 0}
+  currentLevelData: {fileID: 0}
+  currentWave: 0
+  isWaveActive: 0
+  levelCompleteUI: {fileID: 0}
+  levelCompleteText: {fileID: 0}
+  rewardText: {fileID: 0}
+  nextLevelButton: {fileID: 0}
+  retryButton: {fileID: 0}
+  mainMenuButton: {fileID: 0}
+  levelTransitionEffect: {fileID: 0}
 --- !u!114 &1259103163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3323,14 +3347,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 532bf31446c2b3347a6b38873c1509b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerHealth: 100
   maxHealth: 100
-  money: 100
+  initialMoney: 100
   healthText: {fileID: 735487385}
   moneyText: {fileID: 1161221715}
-  healBar: {fileID: 468749153}
+  healthBar: {fileID: 0}
   gameOverUI: {fileID: 625343283}
-  isGameStart: 0
+  pauseMenuUI: {fileID: 0}
 --- !u!1 &1297898655
 GameObject:
   m_ObjectHideFlags: 0
@@ -4005,7 +4028,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1817908517
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4045,8 +4068,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 699727f8935264a4b940bb61738606ec, type: 3}
-  m_Type: 2
+  m_Sprite: {fileID: 21300000, guid: fefc3d98737fb564fa349dd93f78517b, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4469,8 +4492,8 @@ GameObject:
   - component: {fileID: 1983802820}
   - component: {fileID: 1983802823}
   - component: {fileID: 1983802822}
-  - component: {fileID: 1983802821}
-  m_Layer: 0
+  - component: {fileID: 1983802824}
+  m_Layer: 8
   m_Name: NodeTileMap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4492,20 +4515,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2074708446}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1983802821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1983802819}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c33dc5ae200013446bf8f063b3bc8163, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hoverColor: {r: 0, g: 0, b: 0, a: 0}
-  positionOffset: {x: 0, y: 0, z: 0}
 --- !u!483693784 &1983802822
 TilemapRenderer:
   m_ObjectHideFlags: 0
@@ -5641,6 +5650,42 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!19719996 &1983802824
+TilemapCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983802819}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_MaximumTileChangeCount: 1000
+  m_ExtrusionFactor: 0
+  m_UseDelaunayMesh: 0
 --- !u!1 &1991336089
 GameObject:
   m_ObjectHideFlags: 0

@@ -62,7 +62,7 @@ public class EnemyHealth : MonoBehaviour
     private void Die()
     {
         OnEnemyKilled?.Invoke(_enemy);
-
+        _enemy.Die();
     }
 }
 

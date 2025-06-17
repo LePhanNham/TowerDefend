@@ -12,6 +12,7 @@ public class DragAndDropManager : MonoBehaviour, IBeginDragHandler, IDragHandler
     [SerializeField] private Color validPlacementColor = new Color(0, 1, 0, 0.5f);
     [SerializeField] private Color invalidPlacementColor = new Color(1, 0, 0, 0.5f);
     [SerializeField] private float previewAlpha = 0.5f;
+    [SerializeField] private Material previewMaterial; // Material đặc biệt cho preview
 
     private GameObject previewTower;
     private Camera mainCamera;
@@ -58,6 +59,26 @@ public class DragAndDropManager : MonoBehaviour, IBeginDragHandler, IDragHandler
             catch (System.Exception e)
             {
                 Debug.LogWarning($"Không thể đặt layer cho preview: {e.Message}");
+            }
+
+            // Vô hiệu hóa các component liên quan đến việc bắn
+            var towerComponent = previewTower.GetComponent<Tower>();
+            if (towerComponent != null)
+            {
+                towerComponent.enabled = false;
+            }
+
+            var towerProjectile = previewTower.GetComponent<TowerProjectile>();
+            if (towerProjectile != null)
+            {
+                towerProjectile.enabled = false;
+            }
+
+            // Vô hiệu hóa collider để không ảnh hưởng đến gameplay
+            var collider = previewTower.GetComponent<Collider2D>();
+            if (collider != null)
+            {
+                collider.enabled = false;
             }
 
             // Làm mờ preview
@@ -141,11 +162,25 @@ public class DragAndDropManager : MonoBehaviour, IBeginDragHandler, IDragHandler
         // Làm mờ tất cả renderer trong preview
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>())
         {
-            foreach (Material material in renderer.materials)
+            if (previewMaterial != null)
             {
-                Color color = material.color;
-                color.a = alpha;
-                material.color = color;
+                // Sử dụng material đặc biệt cho preview
+                Material[] materials = new Material[renderer.materials.Length];
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    materials[i] = previewMaterial;
+                }
+                renderer.materials = materials;
+            }
+            else
+            {
+                // Fallback: sử dụng material hiện tại với độ trong suốt
+                foreach (Material material in renderer.materials)
+                {
+                    Color color = material.color;
+                    color.a = alpha;
+                    material.color = color;
+                }
             }
         }
     }

@@ -108,39 +108,28 @@ public class LevelManager : Singleton<LevelManager>
     }
 
     #region Level Management
-    public void StartLevel(int level)
+    public void StartLevel(LevelData levelData)
     {
-        if (level < 1 || level > maxLevel)
+        if (levelData == null)
         {
-            Debug.LogError($"Invalid level number: {level}");
+            Debug.LogError("LevelData is null!");
             return;
         }
 
-        currentLevel = level;
+        currentLevelData = levelData;
         currentWave = 0;
         IsLevelComplete = false;
         IsLevelFailed = false;
         EnemiesRemaining = 0;
         TotalEnemiesInWave = 0;
 
-        // Load level data
-        currentLevelData = Resources.Load<LevelData>($"Levels/Level_{level}");
-        if (currentLevelData == null)
-        {
-            Debug.LogError($"Failed to load level data for level {level}");
-            return;
-        }
-
-        // Initialize game state
-        GameManager.Instance.InitializeLevel(currentLevelData.startingMoney, currentLevelData.startingHealth);
-        
-        SaveLevelProgress();
-        StartNextWave();
+        // Initialize level through LevelController
+        LevelController.Instance.InitializeLevel(levelData);
     }
 
     public void RestartLevel()
     {
-        StartLevel(currentLevel);
+        StartLevel(currentLevelData);
     }
 
     public void NextLevel()
@@ -165,7 +154,7 @@ public class LevelManager : Singleton<LevelManager>
 
         yield return new WaitForSeconds(1f);
 
-        StartLevel(currentLevel + 1);
+        StartLevel(currentLevelData);
 
         if (levelTransitionEffect != null)
         {
@@ -355,4 +344,47 @@ public class LevelManager : Singleton<LevelManager>
         return 1f - ((float)EnemiesRemaining / TotalEnemiesInWave);
     }
     #endregion
+
+    private void OnEnable()
+    {
+        LevelController.OnLevelStart += HandleLevelStart;
+        LevelController.OnLevelPause += HandleLevelPause;
+        LevelController.OnLevelResume += HandleLevelResume;
+        LevelController.OnLevelEnd += HandleLevelEnd;
+    }
+
+    private void OnDisable()
+    {
+        LevelController.OnLevelStart -= HandleLevelStart;
+        LevelController.OnLevelPause -= HandleLevelPause;
+        LevelController.OnLevelResume -= HandleLevelResume;
+        LevelController.OnLevelEnd -= HandleLevelEnd;
+    }
+
+    private void HandleLevelStart()
+    {
+        StartNextWave();
+    }
+
+    private void HandleLevelPause()
+    {
+        // Pause wave spawning and enemy movement
+        isWaveActive = false;
+    }
+
+    private void HandleLevelResume()
+    {
+        // Resume wave spawning if there are remaining waves
+        if (currentWave < currentLevelData.waves.Count)
+        {
+            isWaveActive = true;
+        }
+    }
+
+    private void HandleLevelEnd()
+    {
+        // Clean up level
+        isWaveActive = false;
+        currentWave = 0;
+    }
 }

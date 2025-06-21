@@ -40,9 +40,24 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Tower
+    uniqueID: 1960542771
+    locked: 0
+  - name: health
+    uniqueID: 3978855257
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Tower
-    uniqueID: 1960542771
+  - name: Path
+    uniqueID: 1455237763
+    locked: 0
+  - name: TowerPreview
+    uniqueID: 3915117779
+    locked: 0
+  - name: NodeLayer
+    uniqueID: 2860524445
+    locked: 0
+  - name: UI
+    uniqueID: 923516891
     locked: 0

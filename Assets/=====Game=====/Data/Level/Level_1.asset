@@ -12,9 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38aa90c97450db44fac78ed3664a4657, type: 3}
   m_Name: Level_1
   m_EditorClassIdentifier: 
-  id: 2
-  enemies:
-  - {fileID: 11400000, guid: e7148ce668e112549a797c5cf3976d74, type: 2}
-  - {fileID: 11400000, guid: 58528e4ea1b5de64a8b2e792d6c311e7, type: 2}
-  enemyCount: 0a00000005000000
-  timeDelay: 5
+  levelName: 1
+  levelNumber: 1
+  levelBackground: {fileID: 0}
+  levelDescription: 
+  startingMoney: 100
+  startingHealth: 100
+  timeBetweenWaves: 5
+  timeBetweenEnemies: 1
+  waves: []
+  completionReward: 0
+  specialRewards: []
+  requiredStars: 0
+  requiredLevel: 0

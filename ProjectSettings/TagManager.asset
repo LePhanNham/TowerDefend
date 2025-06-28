@@ -52,11 +52,11 @@ TagManager:
   - name: Path
     uniqueID: 1455237763
     locked: 0
-  - name: TowerPreview
-    uniqueID: 3915117779
-    locked: 0
   - name: NodeLayer
     uniqueID: 2860524445
+    locked: 0
+  - name: TowerPreview
+    uniqueID: 3915117779
     locked: 0
   - name: UI
     uniqueID: 923516891

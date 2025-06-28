@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ShopUIManager : Singleton<ShopUIManager>
 {
     [SerializeField] private TowerCard prefab;
     [SerializeField] private Transform panel;
+    [SerializeField] private GameObject inforTower;
 
     [SerializeField] public List<TowerSettings> towerSettingsList;
     public bool checkCreateShop = false;
@@ -24,6 +26,11 @@ public class ShopUIManager : Singleton<ShopUIManager>
             towerCard.GetComponentInParent<Transform>().SetParent(panel);
             towerCard.SetUpTowerBtn(towerSettingsList[i]);
             towerCard.GetComponentInParent<Transform>().localScale = Vector3.one;
+            towerCard.GetComponent<Transform>().localScale = new Vector3(0.6f, 0.6f, 1);
+            towerCard.GetComponent<Button>().onClick.AddListener(() => 
+            {
+                inforTower.SetActive(true);
+            });
         }
     }
 

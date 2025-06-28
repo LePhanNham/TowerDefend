@@ -163,10 +163,13 @@ public class Enemy : MonoBehaviour
 
     private void ReachEndPoint()
     {
+        if (isDead) return; // Đảm bảo chỉ gọi 1 lần
+        isDead = true;      // Đánh dấu enemy đã xử lý
+
         // Trừ máu người chơi
         GameManager.Instance.TakeDamage(damage);
 
-        // Hiệu ứng khi enemy đến điểm cuối
+        // Hiệu ứng khi enemy đến điểm cuối (nếu có)
         if (TryGetComponent<EnemyAnimations>(out var animations))
         {
             StartCoroutine(PlayReachEndPointEffect());
@@ -180,6 +183,9 @@ public class Enemy : MonoBehaviour
 
         // Gọi sự kiện enemy chết
         OnDeath?.Invoke(this);
+
+        // Tắt enemy để trả về pool, tránh spam
+        gameObject.SetActive(false);
     }
 
     private IEnumerator PlayReachEndPointEffect()
